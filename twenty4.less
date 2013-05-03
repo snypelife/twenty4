@@ -1,0 +1,72 @@
+@import 'mixins';
+
+@white: #fff;
+@blue: #006;
+@grey: #666;
+@greyLight: #e8e8e8;
+
+
+.countdown {
+  color: @grey;
+  font-size: 16px;
+  margin-top: 25px;
+  text-align: center;
+  .card {
+    display: inline-block;
+    .ie7-inline-block();
+    border: 1px solid darken(@greyLight, 10%);
+        
+    margin-left: 5px;
+    overflow: visible;
+    padding: 6px 12px;
+    text-align: center;
+    width: 45px;
+
+    #gradient > .vertical-four-colors(@white, darken(@greyLight, 15%), @white, 50%, darken(@greyLight, 15%));
+    .reset-filter();
+
+    height: 26px;
+    &:first-child {
+      margin-left: 0;
+    }
+    .value {
+    font-size: 1.4em;
+    }
+    .title {
+      color: @blue;
+      display: block;
+      font-size: .8em;
+      margin-top: 10px;
+    }
+  }
+  h1,
+  h2,
+  h3 {
+    color: @blue;
+  }
+}
+
+.no-cssgradients {
+  .countdown {
+    .card {
+     // background-image: url('../img/countdown-flip.png');
+      background-image: url('/images/en/landingpage/countdown-flip.png');
+      background-repeat: repeat-x;
+    }
+  }
+}
+
+/*
+.cardTop {
+    .transform-origin(center, bottom);
+    .transform-style(preserve-3d);
+    .transition(all 1s linear 0s);
+}
+.cardTop.flipping {
+    box-shadow: 5px -5px 5px #AAAAAA;
+    .rotate(-180px);
+}
+.cardTop.cancel {
+    .transition(none);
+}
+*/
