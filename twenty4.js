@@ -1,192 +1,143 @@
 !function (win, $, undef) {
 
-  var doc = win.document;
+  var doc = win.document,
+  PI = Math.PI,
+  floor = Math.floor
 
-
-  function Twenty4(settings) {
+  //Constructor
+  Twenty4 = function (target, settings) { 
     var cd = doc.getElementById('countdown'),
-    expiry = cd.getAttribute('data-expiry').split('-'),
+    expiry = settings.end.split('-') || cd.getAttribute('data-expiry').split('-'),
     expiryYear = expiry[0],
     expiryMonth = parseInt(expiry[1], 10) - 1,
     expiryDay = expiry[2],
     expires = +new Date(expiryYear, expiryMonth, expiryDay),
-    timeLeft = expires - (+new Date());
+    timeLeft = expires - (+new Date()),
+    day = floor(timeLeft / 8.64e7),
+    hour = floor((timeLeft % 8.64e7) / 3.6e6),
+    min = floor((timeLeft % 3.6e6) / 6e4),
+    sec = floor((timeLeft % 6e4) / 1e3),
+    direction = settings.direction === 'cw' ? false : true,
 
+    init = function () {
+      var t = [];
 
+      for (var i = 0; i < settings.timer.length; i++) {
+        t.push(new Timer({
+          id: settings.timer[i].id,
+          color: settings.timer[i].color,
+          lineWeight: settings.lineWeight,
+          type: settings.timer[i].type,
+          title: settings.timer[i].title
+       }));
+      }
 
-    var init = function () {
-      
+      setInterval(function () {
+        update(t);
+      }, 1000);
     },
 
     Timer = function (ops) {
-      var t = doc.querySelector(ops.id),
-      ctx = t.getContext('2d');
-      
-      ctx.clearRect(0, 0, t.width, t.height);
-      ctx.beginPath();
-      ctx.strokeStyle = ops.color;
-      
-      ctx.shadowBlur    = 10;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      ctx.shadowColor = ops.glow;
-      
-      ctx.arc(94,94,85, deg(0), deg((360/glob.total)*(glob.total - glob.days)));
 
-      ctx.lineWidth = 17;
-      ctx.stroke();
+      var timer = doc.createElement('div'),
+      timerCanvas = doc.createElement('canvas'),
+      timerDisplay = doc.createElement('div')
+      timerTitle = doc.createElement('div'),
+      ctx = timerCanvas.getContext('2d'),
+      numer = 0,
+      denom = 0;
+
+      this.timerValue = doc.createElement('div');
+
+      this.settings = ops;
+
+      this.draw = function () {
+      switch (this.settings.type) {
+        case 'day':
+          numer = day;
+          denom = 365;
+          break;
+        case 'hour':
+          numer = hour;
+          denom = 24;
+          break;
+        case 'minute':
+          numer = min;
+          denom = 60;
+          break;
+        case 'second':
+          numer = sec;
+          denom = 60;
+          break;
+        default:
+          throw new Error();
+      };
+
+        ctx.clearRect(0, 0, settings.width, settings.height);
+        ctx.beginPath();
+
+        ctx.strokeStyle = this.settings.color;      
+        //ctx.shadowBlur    = 0;
+        //ctx.shadowOffsetX = 0;
+       // ctx.shadowOffsetY = 0;
+        //ctx.shadowColor = ops.glow;
+
+        ctx.arc( (settings.width / 2), (settings.height / 2), 85, degToRad(0), degToRad( -perToDeg(numer / denom) ), direction );
+
+        ctx.lineWidth = this.settings.lineWeight;
+        ctx.stroke();
+
+        this.timerValue.innerHTML = numer;
+      };       
+
+      timerCanvas.id = this.settings.id;
+      timerCanvas.width = settings.width;
+      timerCanvas.height = settings.height
+
+      timer.className = 'timer';
+      timerCanvas.className = 'timer-canvas';
+      timerDisplay.className = 'timer-display';
+      this.timerValue.className = 'timer-value';
+      timerTitle.className = 'timer-title';
+
+      timerTitle.innerHTML = this.settings.title;
+
+      timer.appendChild(timerCanvas);
+      timerDisplay.appendChild(this.timerValue);
+      timerDisplay.appendChild(timerTitle);
+      timer.appendChild(timerDisplay);
+
+      target.appendChild(timer);
       
-      t.appendChild(doc.createTextNode(glob.days));      
+      this.draw();
     },
 
-    setTime = function () {
-      timeLeft -= 1000;
+    update = function (timers) {
+      timeLeft -= 1000; 
+      day = floor(timeLeft / 8.64e7, 10);
+      hour = floor((timeLeft % 8.64e7) / 3.6e6, 10);
+      min = floor((timeLeft % 3.6e6) / 6e4, 10);
+      sec = floor((timeLeft % 6e4) / 1e3, 10);
 
-      var day = Math.floor(timeLeft / 8.64e7, 10),
-      hour = Math.floor((timeLeft % 8.64e7) / 3.6e6, 10),
-      min = Math.floor((timeLeft % 3.6e6) / 6e4, 10),
-      sec = Math.floor((timeLeft % 6e4) / 1e3, 10);
-
-    },
-
-    update = function () {
-
-    },
-
-    deg = function (deg) {
-        return (Math.PI / 180) * deg - (Math.PI/ 180) * 90;
-    };
-    
-    
-    glob.total   = Math.floor((glob.endDate - glob.startDate)/86400);
-    glob.days    = Math.floor((glob.endDate - glob.now ) / 86400);
-    glob.hours   = 24 - Math.floor(((glob.endDate - glob.now) % 86400) / 3600);
-    glob.minutes = 60 - Math.floor((((glob.endDate - glob.now) % 86400) % 3600) / 60) ;
-    
-    if (glob.now >= glob.endDate) {
-      return;
-    }
-    
-    var clock = {
-      set: {
-        days: function () {
-          var cdays = doc.querySelector('#canvas_days');
-          var ctx = cdays.getContext('2d');
-          ctx.clearRect(0, 0, cdays.width, cdays.height);
-          ctx.beginPath();
-          ctx.strokeStyle = glob.daysColor;
-          
-          ctx.shadowBlur    = 10;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.shadowColor = glob.daysGlow;
-          
-          ctx.arc(94,94,85, deg(0), deg((360/glob.total)*(glob.total - glob.days)));
-          ctx.lineWidth = 17;
-          ctx.stroke();
-          $('.clock_days .val').text(glob.days);
-        },
-        
-        hours: function () {
-          var cHr = doc.querySelector('#canvas_hours');
-          var ctx = cHr.getContext('2d');
-          ctx.clearRect(0, 0, cHr.width, cHr.height);
-          ctx.beginPath();
-          ctx.strokeStyle = glob.hoursColor;
-          
-          ctx.shadowBlur    = 10;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.shadowColor = glob.hoursGlow;
-          
-          ctx.arc(94,94,85, deg(0), deg(15*glob.hours));
-          ctx.lineWidth = 17;
-          ctx.stroke();
-          $('.clock_hours .val').text(24 - glob.hours);
-        },
-        
-        minutes : function () {
-          var cMin = doc.querySelector('#canvas_minutes');
-          var ctx = cMin.getContext('2d');
-          ctx.clearRect(0, 0, cMin.width, cMin.height);
-          ctx.beginPath();
-          ctx.strokeStyle = glob.minutesColor;
-          
-          ctx.shadowBlur    = 10;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.shadowColor = glob.minutesGlow;
-          
-          ctx.arc(94,94,85, deg(0), deg(6*glob.minutes));
-          ctx.lineWidth = 17;
-          ctx.stroke();
-          $('.clock_minutes .val').text(60 - glob.minutes);
-        },
-        seconds: function () {
-          var cSec = doc.querySelector('#canvas_seconds');
-          var ctx = cSec.getContext('2d');
-          ctx.clearRect(0, 0, cSec.width, cSec.height);
-          ctx.beginPath();
-          ctx.strokeStyle = glob.secondsColor;
-          
-          ctx.shadowBlur    = 10;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          ctx.shadowColor = glob.secondsGlow;
-          
-          ctx.arc(94,94,85, deg(0), deg(6*glob.seconds));
-          ctx.lineWidth = 17;
-          ctx.stroke();
-  
-          $('.clock_seconds .val').text(60 - glob.seconds);
-        }
-      },
-       
-      start: function () {
-          /* Seconds */
-          var cdown = setInterval(function () {
-              if ( glob.seconds > 59 ) {
-                  if (60 - glob.minutes == 0 && 24 - glob.hours == 0 && glob.days == 0) {
-                      clearInterval(cdown);
-                      
-                      /* Countdown is complete */
-                      
-                      return;
-                  }
-                  glob.seconds = 1;
-                  if (glob.minutes > 59) {
-                      glob.minutes = 1;
-                      clock.set.minutes();
-                      if (glob.hours > 23) {
-                          glob.hours = 1;
-                          if (glob.days > 0) {
-                              glob.days--;
-                              clock.set.days();
-                          }
-                      } else {
-                          glob.hours++;
-                      }
-                      clock.set.hours();
-                  } else {
-                      glob.minutes++;
-                  }
-                  clock.set.minutes();
-              } else {
-                  glob.seconds++;
-              }
-              clock.set.seconds();
-          }, 1000);
+      for (var i = 0; i < timers.length; i++) {
+        timers[i].draw();
       }
-    }
-    clock.set.seconds();
-    clock.set.minutes();
-    clock.set.hours();
-    clock.set.days();
-    clock.start();
-  }
+    };
+
+    init();
+  },
+
+  perToDeg = function (per) {
+      return floor((per * 100) * 3.6);
+    },
+
+  degToRad = function (deg) {
+      return (deg - 90) * (PI / 180);
+  };
 
   $.fn.twenty4 = function (settings) {
-
-      console.log(this);
+    var t = new Twenty4(this[0], settings);
   };
+
+
 }(window, jQuery, undefined);
