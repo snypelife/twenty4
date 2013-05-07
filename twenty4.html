@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>countdown test</title>
+  <link href="twenty4.css" text="text/css" rel="stylesheet"/>
+</head>
+<body>
+
+  <div id="countdown" class="countdown"></div>
+
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+  <script src="twenty4.js"></script>
+  <script>
+    $(function () {
+      $('#countdown').twenty4({
+        end: '2013-05-10', //required
+        height: 200,
+        width: 200,
+        lineWeight: 20,
+        direction: 'cw',
+        timer: [
+          {
+            id: 'timer-days',
+            color: '#00f',
+            type: 'day',
+            title: 'Days'
+          },
+          {
+            id: 'timer-hours',
+            color: '#0f0',
+            type: 'hour',
+            title: 'Hours' 
+          },
+          {
+            id: 'timer-minutes',
+            color: '#f0f',
+            type: 'minute',
+            title: 'Minutes'
+          },
+          {
+            id: 'timer-seconds',
+            color: '#f00',
+            type: 'second',
+            title: 'Seconds' 
+          }
+        ]
+      });
+    });
+  </script>
+</body>
+</html>
