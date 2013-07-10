@@ -7,4 +7,4 @@ The original idea I found was from <a href="http://codecanyon.net/item/jbmarket-
 
 I just wanted to try doing it myself, and perhaps making it more extensible and plugin-ish.
 
-Uses <canvas> so supports IE9+.
+Uses &lt;canvas&gt; so supports IE9+.
